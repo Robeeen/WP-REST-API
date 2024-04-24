@@ -31,3 +31,23 @@ function setup_table(){
     dbDelta( $sql );
 }
 
+add_action('rest_api_init', 'registering_routes');
+
+function registering_routes(){
+    register_rest_route(
+        'form_submission_route/v1',
+        '/form-submission',
+        array(
+            'method' => 'GET',
+            'callback' => 'form_sub_callback',
+            'permission_callback' => '__return_true'
+        )
+    );
+}
+
+function form_sub_callback(){
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'form_submission';
+    $results = $wpdb->get_results( "SELECT * FROM $table_name" );
+    return $results;
+}
