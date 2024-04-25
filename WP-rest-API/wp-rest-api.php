@@ -16,7 +16,8 @@ if( !defined('ABSPATH'))
 
 register_activation_hook( __FILE__, 'setup_table');
 
-//setup table for api data
+//setup table for api data in Database
+
 function setup_table(){
     global $wpdb;
     $table_name = $wpdb->prefix . 'form_submission';
@@ -25,11 +26,12 @@ function setup_table(){
         name varchar (100) NOT NULL,
         email varchar (100) NOT NULL,
         PRIMARY KEY (id)
-        )";
-    
+        )";    
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta( $sql );
 }
+
+//Create and Register new Rest Route/endpoint/
 
 add_action('rest_api_init', 'registering_routes');
 
@@ -43,6 +45,15 @@ function registering_routes(){
             'permission_callback' => '__return_true'
         )
     );
+    register_rest_route(
+        'form_submission_route/v1',
+        '/form-submission',
+        array(
+            'method' => 'POST',
+            'callback' => 'form_get_callback',
+            'permission_callback' => '__return_true'
+        )
+    );
 }
 
 function form_sub_callback(){
@@ -50,4 +61,18 @@ function form_sub_callback(){
     $table_name = $wpdb->prefix . 'form_submission';
     $results = $wpdb->get_results( "SELECT * FROM $table_name" );
     return $results;
+}
+            
+function form_get_callback($request){
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'form_submission';
+
+    $row = $wpdb->insert(
+        $table_name,
+        array(
+            'name' => $request['name'],
+            'email' => $request['email']
+        )
+    );
+    return $row;
 }
